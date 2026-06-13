@@ -461,6 +461,89 @@
   flex-direction: column;
 }
 
+
+.profile-search-form {
+  background: rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(36, 32, 28, 0.12);
+  border-radius: 10px;
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 10px;
+}
+
+.profile-search-form label,
+.friend-list-mini strong {
+  color: #102321;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.profile-search-row {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.profile-search-row input,
+.profile-search-row button,
+.friend-result-actions button,
+.friend-list-mini button,
+.public-profile-actions button {
+  border: 1px solid rgba(16, 35, 33, 0.18);
+  border-radius: 8px;
+  font: inherit;
+  padding: 7px 9px;
+}
+
+.profile-search-row button,
+.friend-result-actions button,
+.friend-list-mini button,
+.public-profile-actions button {
+  background: #64b5b3;
+  color: #102321;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.profile-search-hint,
+.friend-search-empty,
+.friend-result-card p,
+.friend-list-mini p {
+  color: #2e4a48;
+  font-size: 12px;
+  margin: 0;
+}
+
+.friend-result-card {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.42);
+  border-radius: 10px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 8px;
+}
+
+.friend-result-actions,
+.public-profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  grid-column: 1 / -1;
+}
+
+.friend-list-mini {
+  border-top: 1px solid rgba(16, 35, 33, 0.12);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 8px;
+}
+
+.public-profile-shell .profile-insta-head {
+  border-bottom: 0;
+}
 #conversation-list {
   min-height: 0;
   overflow-y: auto;
@@ -1232,3 +1315,95 @@
   margin-top: 6px;
 }
 
+
+
+.post-composer {
+  background: rgba(115, 115, 115, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 12px;
+  box-shadow: 0 10px 26px rgba(16, 35, 33, 0.12);
+  display: grid;
+  gap: 10px;
+  margin: 0 auto 14px;
+  max-width: 680px;
+  padding: 12px;
+}
+
+.post-composer-head {
+  align-items: center;
+  color: #fff;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.post-composer textarea,
+.post-composer select {
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(16, 35, 33, 0.18);
+  border-radius: 8px;
+  color: #172721;
+  font: inherit;
+  padding: 10px;
+}
+
+.post-composer-actions {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+}
+
+.post-composer-actions button,
+.avatar-button {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.post-composer-actions button {
+  background: #64b5b3;
+  border-radius: 8px;
+  color: #102321;
+  font-weight: 800;
+  padding: 10px 14px;
+}
+
+.avatar-button {
+  flex: 0 0 auto;
+}
+
+.notification-list {
+  color: #fff;
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.notification-list article,
+.notification-list p {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  margin: 0;
+  padding: 10px;
+}
+
+.notification-list article p {
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  padding: 4px 0 0;
+}
+
+.friend-result-actions [data-block-profile-id],
+.public-profile-actions [data-block-profile-id] {
+  background: rgba(86, 61, 54, 0.82);
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .post-composer-actions {
+    grid-template-columns: 1fr;
+  }
+}

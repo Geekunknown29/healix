@@ -3,7 +3,13 @@
   healixServices: [],
   healixServiceHistory: [],
   healixServiceRatings: {},
-  healixUserProfiles: {}
+  healixUserProfiles: {},
+  healixFriendGraph: {},
+  healixPosts: [],
+  healixMessages: {},
+  healixConversations: [],
+  healixNotifications: [],
+  healixPrivacySettings: {}
 };
 
 module.exports = function handler(req, res) {
@@ -13,3 +19,4 @@ module.exports = function handler(req, res) {
   }
   return res.status(200).json(defaultState);
 };
+

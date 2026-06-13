@@ -37,7 +37,13 @@ function defaultDatabase() {
       healixServices: [],
       healixServiceHistory: [],
       healixServiceRatings: {},
-      healixUserProfiles: {}
+      healixUserProfiles: {},
+      healixFriendGraph: {},
+      healixPosts: [],
+      healixMessages: {},
+      healixConversations: [],
+      healixNotifications: [],
+      healixPrivacySettings: {}
     }
   };
 }
@@ -115,7 +121,7 @@ async function handleApi(req, res, pathname) {
 
   const stateMatch = pathname.match(/^\/api\/state\/([^/]+)$/);
   if (req.method === "PUT" && stateMatch) {
-    const allowedKeys = new Set(["healixFeedStats", "healixServices", "healixServiceHistory", "healixServiceRatings", "healixUserProfiles"]);
+    const allowedKeys = new Set(["healixFeedStats", "healixServices", "healixServiceHistory", "healixServiceRatings", "healixUserProfiles", "healixFriendGraph", "healixPosts", "healixMessages", "healixConversations", "healixNotifications", "healixPrivacySettings"]);
     const key = decodeURIComponent(stateMatch[1]);
     if (!allowedKeys.has(key)) return sendJson(res, 400, { error: "Unsupported state key" });
     const body = await readJsonBody(req);
@@ -202,3 +208,6 @@ ensureDatabase();
 server.listen(PORT, () => {
   console.log(`Healix running at http://localhost:${PORT}`);
 });
+
+
+

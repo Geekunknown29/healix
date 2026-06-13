@@ -4,6 +4,12 @@ const SERVICE_STORAGE_KEY = "healixServices";
 const SERVICE_HISTORY_KEY = "healixServiceHistory";
 const SERVICE_RATINGS_KEY = "healixServiceRatings";
 const PROFILE_STORAGE_KEY = "healixUserProfiles";
+const FRIENDS_STORAGE_KEY = "healixFriendGraph";
+const POSTS_STORAGE_KEY = "healixPosts";
+const MESSAGES_STORAGE_KEY = "healixMessages";
+const CONVERSATIONS_STORAGE_KEY = "healixConversations";
+const NOTIFICATIONS_STORAGE_KEY = "healixNotifications";
+const PRIVACY_STORAGE_KEY = "healixPrivacySettings";
 
 const doctors = [
   { id: 1, name: "Dr. A. Mehra", specialization: "General Physician", locality: "Dwarka", phone: "9876543210", verified: true },
@@ -27,14 +33,16 @@ const sections = document.querySelectorAll("[data-section]");
 const BACKEND_AVAILABLE = window.location.protocol === "http:" || window.location.protocol === "https:";
 const backendState = loadBackendState();
 
-const dummyPosts = [
+const defaultPosts = [
   { id: 1, author: "Doug Out", subtitle: "wonder-ful day!", body: "Sharing a light evening walk and hydration reminder for everyone.", media: "post-media-large" },
   { id: 2, author: "Dr. A. Mehra", subtitle: "Delhi Health Tip", body: "Mild headache? Rest, hydrate, and avoid screen strain for an hour.", media: "post-media-small" },
   { id: 3, author: "Fresh Basket", subtitle: "Vendor Update", body: "Fresh apples, mangoes, and spinach stocked today in Janakpuri.", media: "post-media-small" }
 ];
 
-const conversations = ["HARI", "Animesh", "Hitesh", "Riya", "Kunal", "Neha", "Aarav", "Meera", "Kabir", "Tanya", "Ishaan", "Priya"];
-const messagesByConversation = {
+let dummyPosts = loadPosts();
+
+const conversations = loadJson(CONVERSATIONS_STORAGE_KEY, ["HARI", "Animesh", "Hitesh", "Riya", "Kunal", "Neha", "Aarav", "Meera", "Kabir", "Tanya", "Ishaan", "Priya"]);
+const messagesByConversation = loadJson(MESSAGES_STORAGE_KEY, {
   HARI: [
     { from: "HARI", body: "hey whats up" },
     { from: "You", body: "good, what about you?" },
@@ -57,12 +65,15 @@ const messagesByConversation = {
   Tanya: [{ from: "Tanya", body: "Does green flag mean doctor approved?" }],
   Ishaan: [{ from: "Ishaan", body: "Can I message a vendor from here?" }],
   Priya: [{ from: "Priya", body: "Adding more fruits helped my routine." }]
-};
+});
 
 let feedStats = loadJson(FEED_STATS_STORAGE_KEY, {});
 let services = loadServices();
 let serviceHistory = loadJson(SERVICE_HISTORY_KEY, []);
 let serviceRatings = loadJson(SERVICE_RATINGS_KEY, {});
+let friendGraph = loadJson(FRIENDS_STORAGE_KEY, {});
+let notifications = loadJson(NOTIFICATIONS_STORAGE_KEY, []);
+let privacySettings = loadJson(PRIVACY_STORAGE_KEY, {});
 let activeConversation = conversations[0];
 let userProfile = loadUserProfile();
 let activeServiceTab = activeRole === "doctor" ? "doctors" : activeRole === "vendor" ? "vendors" : "vendors";
@@ -130,6 +141,8 @@ function loadUserProfile() {
       aboutMe: "Tell people about your health journey."
     };
   }
+  if (!profiles[currentUserId].profileId) profiles[currentUserId].profileId = createProfileId(currentUserId);
+  profiles[currentUserId].role = profiles[currentUserId].role || activeRole;
   if (!profiles[currentUserId].aboutMe) profiles[currentUserId].aboutMe = "Tell people about your health journey.";
   saveJson(PROFILE_STORAGE_KEY, profiles);
   return profiles[currentUserId];
@@ -157,6 +170,77 @@ function moneyLabel(value, fallback = "On request") {
   return `Rs ${cleanValue}`;
 }
 
+function normalizePost(post, index = 0) {
+  const ownerProfileId = post.profileId || createProfileId(post.author || post.ownerId || `post-${index}`);
+  return {
+    id: post.id || Date.now() + index,
+    ownerId: post.ownerId || post.email || ownerProfileId,
+    profileId: ownerProfileId,
+    author: post.author || "Healix User",
+    subtitle: post.subtitle || "Health update",
+    body: post.body || "",
+    media: post.media || "post-media-small",
+    kind: post.kind || "Post",
+    visibility: post.visibility || "public",
+    createdAt: post.createdAt || new Date().toISOString()
+  };
+}
+
+function loadPosts() {
+  const seeded = defaultPosts.map((post, index) => normalizePost({ ...post, ownerId: ["doug@healix.demo", "doctor@healthsocial.demo", "vendor@healthsocial.demo"][index], profileId: ["doug-out", "doctor-demo", "vendor-demo"][index] }, index));
+  const saved = loadJson(POSTS_STORAGE_KEY, null);
+  if (Array.isArray(saved) && saved.length) return saved.map(normalizePost);
+  saveJson(POSTS_STORAGE_KEY, seeded);
+  return seeded;
+}
+
+function savePosts() {
+  saveJson(POSTS_STORAGE_KEY, dummyPosts);
+}
+
+function saveConversations() {
+  saveJson(CONVERSATIONS_STORAGE_KEY, conversations);
+  saveJson(MESSAGES_STORAGE_KEY, messagesByConversation);
+}
+
+function saveNotifications() {
+  saveJson(NOTIFICATIONS_STORAGE_KEY, notifications);
+}
+
+function addNotification(text, profileId = "") {
+  notifications.unshift({ id: Date.now(), text, profileId, at: new Date().toISOString(), read: false });
+  notifications = notifications.slice(0, 30);
+  saveNotifications();
+}
+
+function savePrivacySettings() {
+  saveJson(PRIVACY_STORAGE_KEY, privacySettings);
+}
+
+function getPrivacyForCurrentUser() {
+  if (!privacySettings[currentUserId]) privacySettings[currentUserId] = { showEmail: false, showMobile: false, blockedProfileIds: [] };
+  return privacySettings[currentUserId];
+}
+
+function getBlockedIds() {
+  return getPrivacyForCurrentUser().blockedProfileIds || [];
+}
+
+function isBlocked(profileId) {
+  return getBlockedIds().includes(profileId);
+}
+
+function blockProfile(profileId) {
+  const profile = findProfileById(profileId);
+  if (!profile || profile.userId === currentUserId) return;
+  const privacy = getPrivacyForCurrentUser();
+  privacy.blockedProfileIds = Array.from(new Set([...(privacy.blockedProfileIds || []), profile.profileId]));
+  friendGraph[currentUserId] = getMyFriendIds().filter((id) => id !== profile.profileId);
+  saveFriendGraph(friendGraph);
+  savePrivacySettings();
+  addNotification(`Blocked @${profile.profileId}`, profile.profileId);
+  closeOverlay();
+}
 function loadServices() {
   const saved = loadJson(SERVICE_STORAGE_KEY, null);
   if (Array.isArray(saved) && saved.length) return saved;
@@ -266,7 +350,7 @@ function renderShareMenu(post) {
       <p>Share this post</p>
       <button type="button" data-share-target="whatsapp" data-post-id="${post.id}">WhatsApp</button>
       <button type="button" data-share-target="facebook" data-post-id="${post.id}">Facebook</button>
-      <label>Message friend <select data-share-friend="${post.id}">${conversations.map((name) => `<option value="${name}">${name}</option>`).join("")}</select></label>
+      <label>Message friend <select data-share-friend="${post.id}">${(getMyFriendIds().map(findProfileById).filter(Boolean).map((friend) => friend.username).concat(conversations)).filter((name, index, list) => list.indexOf(name) === index).map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("")}</select></label>
       <button type="button" data-share-target="friend" data-post-id="${post.id}">Send</button>
     </div>`;
 }
@@ -300,6 +384,7 @@ function openExternalShare(post, channel) {
 function shareToFriend(post, friendName) {
   if (!messagesByConversation[friendName]) messagesByConversation[friendName] = [];
   messagesByConversation[friendName].push({ from: "You", body: `Shared post - ${escapeHtml(postShareText(post))}` });
+  saveConversations();
   recordShare(post.id, "friend", friendName);
 }
 
@@ -342,15 +427,234 @@ function handleShareChoice(event) {
   }
 }
 
+function createProfileId(value) {
+  return String(value || "healix-user")
+    .toLowerCase()
+    .replace(/@.*$/, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "healix-user";
+}
+
+function seedProfileDirectory() {
+  const profiles = loadJson(PROFILE_STORAGE_KEY, {});
+  const seeds = [
+    { id: "public-demo", userId: "public@healthsocial.demo", username: "Public User", role: "public", email: "public@healthsocial.demo", mobile: "Not provided", aboutMe: "Exploring trusted health posts and local services." },
+    { id: "doctor-demo", userId: "doctor@healthsocial.demo", username: "Doctor", role: "doctor", email: "doctor@healthsocial.demo", mobile: "Not provided", aboutMe: "General health guidance and fact-checking for the community." },
+    { id: "vendor-demo", userId: "vendor@healthsocial.demo", username: "Vendor", role: "vendor", email: "vendor@healthsocial.demo", mobile: "Not provided", aboutMe: "Listing health products and local service details." },
+    { id: "riya-health", userId: "riya@healix.demo", username: "Riya Health", role: "public", email: "riya@healix.demo", mobile: "Not provided", aboutMe: "Saves health tips and shares local service experiences." },
+    { id: "doug-out", userId: "doug@healix.demo", username: "Doug Out", role: "public", email: "doug@healix.demo", mobile: "Not provided", aboutMe: "Shares simple everyday wellness moments." },
+    { id: "dr-mehra", userId: "dr.mehra@healix.demo", username: "Dr. A. Mehra", role: "doctor", email: "dr.mehra@healix.demo", mobile: "9876543210", aboutMe: "General physician focused on simple, verified advice." },
+    { id: "fresh-basket", userId: "fresh.basket@healix.demo", username: "Fresh Basket", role: "vendor", email: "fresh.basket@healix.demo", mobile: "9001002003", aboutMe: "Fresh fruits and vegetables supplier for Delhi users." }
+  ];
+  seeds.forEach((profile) => {
+    if (!profiles[profile.userId]) {
+      profiles[profile.userId] = {
+        username: profile.username,
+        password: "",
+        mobile: profile.mobile,
+        email: profile.email,
+        profileId: profile.id,
+        aboutMe: profile.aboutMe,
+        role: profile.role
+      };
+    }
+  });
+  saveJson(PROFILE_STORAGE_KEY, profiles);
+  return profiles;
+}
+
+function getProfileDirectory() {
+  const profiles = seedProfileDirectory();
+  return Object.entries(profiles).map(([userId, profile]) => ({
+    userId,
+    profileId: profile.profileId || createProfileId(userId),
+    username: profile.username || titleCase(createProfileId(userId).replaceAll("-", " ")),
+    role: profile.role || (userId.includes("doctor") || userId.includes("dr.") ? "doctor" : userId.includes("vendor") || userId.includes("basket") ? "vendor" : "public"),
+    email: profile.email || userId,
+    mobile: profile.mobile || "Not provided",
+    aboutMe: profile.aboutMe || "No bio added yet."
+  }));
+}
+
+function findProfileById(profileId) {
+  const cleanId = String(profileId || "").trim().toLowerCase().replace(/^@/, "");
+  return getProfileDirectory().find((profile) => profile.profileId.toLowerCase() === cleanId || profile.email.toLowerCase() === cleanId);
+}
+
+function getMyFriendIds() {
+  return Array.isArray(friendGraph[currentUserId]) ? friendGraph[currentUserId] : [];
+}
+
+function isFriend(profileId) {
+  return getMyFriendIds().includes(profileId);
+}
+
+function saveFriendGraph(nextGraph = friendGraph) {
+  friendGraph = nextGraph;
+  saveJson(FRIENDS_STORAGE_KEY, friendGraph);
+}
+
+function conversationNameForProfile(profile) {
+  return profile.username;
+}
+
+function addFriend(profileId) {
+  const profile = findProfileById(profileId);
+  if (!profile || profile.userId === currentUserId || isBlocked(profile.profileId)) return;
+  const friendIds = getMyFriendIds();
+  if (!friendIds.includes(profile.profileId)) {
+    const myProfileId = userProfile.profileId || createProfileId(currentUserId);
+    const theirIds = Array.isArray(friendGraph[profile.userId]) ? friendGraph[profile.userId] : [];
+    saveFriendGraph({
+      ...friendGraph,
+      [currentUserId]: [...friendIds, profile.profileId],
+      [profile.userId]: Array.from(new Set([...theirIds, myProfileId]))
+    });
+    addNotification(`Added @${profile.profileId} as a friend.`, profile.profileId);
+  }
+  const conversationName = conversationNameForProfile(profile);
+  if (!conversations.includes(conversationName)) conversations.push(conversationName);
+  document.getElementById("profile-search-form")?.remove();
+  if (!messagesByConversation[conversationName]) messagesByConversation[conversationName] = [{ from: profile.username, body: "Profile connected. You can start a conversation here." }];
+  activeConversation = conversationName;
+  saveConversations();
+  renderMessages();
+}
+function renderFriendSearchResult(profile) {
+  if (!profile) return `<p class="friend-search-empty">No profile found. Try doctor-demo, vendor-demo, public-demo, dr-mehra, fresh-basket, or riya-health.</p>`;
+  if (isBlocked(profile.profileId)) return `<p class="friend-search-empty">This profile is blocked from your account.</p>`;
+  const mine = profile.userId === currentUserId;
+  const alreadyFriend = isFriend(profile.profileId);
+  return `
+    <article class="friend-result-card">
+      <span class="avatar">${escapeHtml(profile.username.charAt(0).toUpperCase())}</span>
+      <div>
+        <strong>${escapeHtml(profile.username)}</strong>
+        <p>${escapeHtml(profile.role)} | @${escapeHtml(profile.profileId)}</p>
+      </div>
+      <div class="friend-result-actions">
+        <button type="button" data-view-profile-id="${escapeHtml(profile.profileId)}">View</button>
+        ${mine ? "" : `<button type="button" data-add-friend-id="${escapeHtml(profile.profileId)}">${alreadyFriend ? "Friend" : "Add Friend"}</button><button type="button" data-block-profile-id="${escapeHtml(profile.profileId)}">Block</button>`}
+      </div>
+    </article>`;
+}
+
+function renderFriendSearchPanel() {
+  const friends = getMyFriendIds().map(findProfileById).filter(Boolean);
+  return `
+    <form id="profile-search-form" class="profile-search-form">
+      <label for="profile-search-input">Find profile</label>
+      <div class="profile-search-row">
+        <input id="profile-search-input" name="profileId" placeholder="Enter profile ID" autocomplete="off" />
+        <button type="submit">Search</button>
+      </div>
+      <p class="profile-search-hint">Your ID: @${escapeHtml(userProfile.profileId || createProfileId(currentUserId))}</p>
+      <div id="profile-search-result" class="profile-search-result"></div>
+      <div class="friend-list-mini">
+        <strong>Friends</strong>
+        ${friends.length ? friends.map((friend) => `<button type="button" data-view-profile-id="${escapeHtml(friend.profileId)}">${escapeHtml(friend.username)}</button>`).join("") : `<p>No friends added yet.</p>`}
+      </div>
+    </form>`;
+}
+
+function ensureFriendSearchPanel() {
+  const list = document.getElementById("conversation-list");
+  if (!list || document.getElementById("profile-search-form")) return;
+  list.insertAdjacentHTML("beforebegin", renderFriendSearchPanel());
+}
+
+function showProfileSearchResult(profile) {
+  const result = document.getElementById("profile-search-result");
+  if (result) result.innerHTML = renderFriendSearchResult(profile);
+}
+
+function renderExternalProfilePanel(profileId) {
+  const profile = findProfileById(profileId);
+  if (!profile || isBlocked(profile.profileId)) return;
+  const friend = isFriend(profile.profileId);
+  const targetPrivacy = privacySettings[profile.userId] || { showEmail: false, showMobile: false };
+  const profilePosts = dummyPosts.filter((post) => post.profileId === profile.profileId && post.visibility !== "friends");
+  overlayShell(
+    `
+    <section class="profile-mock-shell public-profile-shell">
+      <header class="overlay-main-head profile-mock-close">
+        <h2>${escapeHtml(profile.username)}</h2>
+        <button class="overlay-close-btn" type="button" data-close-overlay aria-label="Close overlay">&times;</button>
+      </header>
+      <header class="profile-insta-head">
+        <div class="profile-insta-avatar-wrap"><img src="../../../log_page_resource/user_circle.png" alt="User" /></div>
+        <section class="profile-insta-meta">
+          <div class="profile-insta-name-row"><h3>${escapeHtml(profile.username)}</h3><span class="profile-role-chip">${escapeHtml(profile.role)}</span></div>
+          <div class="profile-insta-stats"><p><strong>@${escapeHtml(profile.profileId)}</strong> profile id</p><p><strong>${profilePosts.length}</strong> posts</p><p><strong>${friend ? "Added" : "Not added"}</strong> friend</p></div>
+          <p class="profile-insta-bio">${escapeHtml(profile.aboutMe)}</p>
+          <p class="muted">${targetPrivacy.showEmail ? escapeHtml(profile.email) : "Email private"} · ${targetPrivacy.showMobile ? escapeHtml(profile.mobile) : "Mobile private"}</p>
+          <div class="public-profile-actions">
+            ${profile.userId === currentUserId ? "" : `<button type="button" data-add-friend-id="${escapeHtml(profile.profileId)}">${friend ? "Friend" : "Add Friend"}</button><button type="button" data-block-profile-id="${escapeHtml(profile.profileId)}">Block</button>`}
+            <button type="button" data-message-profile-id="${escapeHtml(profile.profileId)}">Message</button>
+          </div>
+        </section>
+      </header>
+      <section class="profile-insta-grid-wrap">
+        ${profilePosts.length ? `<section class="profile-insta-grid">${profilePosts.map((post, index) => `<article class="profile-insta-tile tone-${(index % 5) + 1}"><span class="media-kind">${escapeHtml(post.kind || "Post")}</span><p>${escapeHtml(post.body.replace(/<[^>]+>/g, "").slice(0, 28))}</p></article>`).join("")}</section>` : `<p class="muted">No public posts yet.</p>`}
+      </section>
+    </section>`,
+    "overlay-profile"
+  );
+}
+function renderPostComposer() {
+  return `
+    <form id="post-composer-form" class="post-composer">
+      <div class="post-composer-head"><span class="avatar">${escapeHtml((userProfile.username || "U").charAt(0).toUpperCase())}</span><strong>Create post</strong><span>@${escapeHtml(userProfile.profileId || createProfileId(currentUserId))}</span></div>
+      <textarea name="body" rows="3" placeholder="Share a health update, question, service note, or useful tip" required></textarea>
+      <div class="post-composer-actions">
+        <select name="kind" aria-label="Post type"><option>Post</option><option>Photo</option><option>Blog</option><option>Reel</option></select>
+        <select name="visibility" aria-label="Visibility"><option value="public">Public</option><option value="friends">Friends</option></select>
+        <button type="submit">Post</button>
+      </div>
+    </form>`;
+}
+
+function createPostFromForm(form) {
+  const body = form.elements.body.value.trim();
+  if (!body) return;
+  const kind = form.elements.kind.value;
+  const post = normalizePost({
+    id: Date.now(),
+    ownerId: currentUserId,
+    profileId: userProfile.profileId || createProfileId(currentUserId),
+    author: userProfile.username || titleCase(activeRole),
+    subtitle: `${titleCase(activeRole)} update`,
+    body: escapeHtml(body),
+    media: kind === "Reel" ? "post-media-large tone-1" : "post-media-small tone-2",
+    kind,
+    visibility: form.elements.visibility.value,
+    createdAt: new Date().toISOString()
+  });
+  dummyPosts.unshift(post);
+  savePosts();
+  addNotification("Your post is live on the feed.", post.profileId);
+  form.reset();
+  renderFeed();
+}
+
+function canViewPost(post) {
+  if (post.ownerId === currentUserId) return true;
+  if (post.visibility !== "friends") return true;
+  return isFriend(post.profileId);
+}
 function renderFeed(openSharePostId = null) {
   const list = document.getElementById("feed-posts");
   if (!list) return;
-  list.innerHTML = dummyPosts
+  const visiblePosts = dummyPosts.filter(canViewPost);
+  list.innerHTML = renderPostComposer() + visiblePosts
     .map(
       (post) => `
       <article class="post-card-ui">
-        <header class="post-head-ui"><span class="avatar">U</span><div><strong>${post.author}</strong><p class="muted">${post.subtitle}</p></div></header>
-        <div class="${post.media}"></div>
+        <header class="post-head-ui">
+          <button class="avatar avatar-button" type="button" data-view-profile-id="${escapeHtml(post.profileId || createProfileId(post.author))}">${escapeHtml((post.author || "U").charAt(0).toUpperCase())}</button>
+          <div><strong>${escapeHtml(post.author)}</strong><p class="muted">${escapeHtml(post.subtitle)} · ${escapeHtml(post.kind || "Post")} · ${escapeHtml(post.visibility || "public")}</p></div>
+        </header>
+        <div class="${escapeHtml(post.media)}"></div>
         <p>${post.body}</p>
         <footer class="post-actions-ui">${renderPostActions(post.id)}</footer>
         ${openSharePostId === post.id ? renderShareMenu(post) : ""}
@@ -360,6 +664,7 @@ function renderFeed(openSharePostId = null) {
 }
 
 function renderMessages() {
+  ensureFriendSearchPanel();
   const list = document.getElementById("conversation-list");
   const thread = document.getElementById("message-thread");
   if (list) {
@@ -389,6 +694,7 @@ function sendMessage(body) {
   const cleanBody = body.trim();
   if (!cleanBody) return;
   messagesByConversation[activeConversation].push({ from: "You", body: escapeHtml(cleanBody) });
+  saveConversations();
   renderMessages();
 }
 
@@ -747,6 +1053,8 @@ function renderAccountRail(activeView) {
     <aside class="overlay-rail">
       <button type="button" class="${activeView === "user" ? "active" : ""}" data-account-view="user">USER</button>
       <button type="button" class="${activeView === "class" ? "active" : ""}" data-account-view="class">CLASS</button>
+      <button type="button" class="${activeView === "privacy" ? "active" : ""}" data-account-view="privacy">PRIVACY</button>
+      <button type="button" class="${activeView === "notifications" ? "active" : ""}" data-account-view="notifications">NOTIFICATIONS</button>
       <button type="button" data-logout>LOG OUT</button>
       <span class="rail-brand">HEALIX</span>
     </aside>`;
@@ -802,6 +1110,52 @@ function renderAccountPanel(view = "menu") {
     );
     return;
   }
+  if (view === "privacy") {
+    const privacy = getPrivacyForCurrentUser();
+    const blocked = getBlockedIds().map(findProfileById).filter(Boolean);
+    overlayShell(
+      `
+      <section class="split-overlay">
+        ${renderAccountRail("privacy")}
+        <section class="overlay-main">
+          <header class="overlay-main-head">
+            <h2>Privacy</h2>
+            <button class="overlay-close-btn" type="button" data-close-overlay aria-label="Close overlay">&times;</button>
+          </header>
+          <form id="privacy-form" class="profile-form">
+            <label><input type="checkbox" name="showEmail" ${privacy.showEmail ? "checked" : ""} /> Show email on public profile</label>
+            <label><input type="checkbox" name="showMobile" ${privacy.showMobile ? "checked" : ""} /> Show mobile number on public profile</label>
+            <button class="btn" type="submit">Save privacy</button>
+          </form>
+          <section class="notification-list">
+            <h3>Blocked profiles</h3>
+            ${blocked.length ? blocked.map((profile) => `<p>@${escapeHtml(profile.profileId)} - ${escapeHtml(profile.username)}</p>`).join("") : `<p>No blocked profiles.</p>`}
+          </section>
+        </section>
+      </section>`,
+      "overlay-account"
+    );
+    return;
+  }
+  if (view === "notifications") {
+    overlayShell(
+      `
+      <section class="split-overlay">
+        ${renderAccountRail("notifications")}
+        <section class="overlay-main">
+          <header class="overlay-main-head">
+            <h2>Notifications</h2>
+            <button class="overlay-close-btn" type="button" data-close-overlay aria-label="Close overlay">&times;</button>
+          </header>
+          <section class="notification-list">
+            ${notifications.length ? notifications.map((note) => `<article><strong>${escapeHtml(note.text)}</strong><p>${new Date(note.at).toLocaleString()}</p></article>`).join("") : `<p>No notifications yet.</p>`}
+          </section>
+        </section>
+      </section>`,
+      "overlay-account"
+    );
+    return;
+  }
   renderAccountPanel("user");
 }
 
@@ -823,20 +1177,9 @@ function getProfileTiles(view) {
       .filter((post) => hasValue(ensurePostStats(post.id).greenFlaggedBy, currentUserId))
       .map((post, index) => ({ kind: "Checked", label: `${post.author}`, tone: `tone-${(index % 5) + 1}` }));
   }
-  return [
-    { kind: "Reel", label: "Morning Walk", tone: "tone-1" },
-    { kind: "Photo", label: "Healthy Meal", tone: "tone-2" },
-    { kind: "Blog", label: "Hydration Tips", tone: "tone-3" },
-    { kind: "Reel", label: "Yoga Stretch", tone: "tone-4" },
-    { kind: "Photo", label: "Clinic Day", tone: "tone-5" },
-    { kind: "Photo", label: "Fresh Basket", tone: "tone-2" },
-    { kind: "Reel", label: "Evening Cardio", tone: "tone-1" },
-    { kind: "Blog", label: "Sleep Notes", tone: "tone-3" },
-    { kind: "Reel", label: "Warm Up", tone: "tone-4" },
-    { kind: "Photo", label: "Nature Break", tone: "tone-5" },
-    { kind: "Blog", label: "Protein Basics", tone: "tone-3" },
-    { kind: "Photo", label: "Weekend Ride", tone: "tone-2" }
-  ];
+  return dummyPosts
+    .filter((post) => post.ownerId === currentUserId || post.profileId === userProfile.profileId)
+    .map((post, index) => ({ kind: post.kind || "Post", label: post.body.replace(/<[^>]+>/g, "").slice(0, 28) || post.subtitle, tone: `tone-${(index % 5) + 1}` }));
 }
 
 function renderProfileTop(view) {
@@ -906,6 +1249,18 @@ function handleOverlayClick(event) {
   if (accountView) renderAccountPanel(accountView.dataset.accountView);
   const profileView = event.target.closest("[data-profile-view]");
   if (profileView) renderProfilePanel(profileView.dataset.profileView);
+  const externalProfile = event.target.closest("[data-view-profile-id]");
+  if (externalProfile) renderExternalProfilePanel(externalProfile.dataset.viewProfileId);
+  const addFriendButton = event.target.closest("[data-add-friend-id]");
+  if (addFriendButton) addFriend(addFriendButton.dataset.addFriendId);
+  const messageProfileButton = event.target.closest("[data-message-profile-id]");
+  if (messageProfileButton) {
+    addFriend(messageProfileButton.dataset.messageProfileId);
+    closeOverlay();
+    setSection("messages");
+  }
+  const blockProfileButton = event.target.closest("[data-block-profile-id]");
+  if (blockProfileButton) blockProfile(blockProfileButton.dataset.blockProfileId);
   if (event.target.matches("[data-logout]")) {
     localStorage.removeItem("prototypeRole");
     localStorage.removeItem("prototypeEmail");
@@ -916,8 +1271,18 @@ function handleOverlayClick(event) {
 function handleOverlaySubmit(event) {
   if (event.target.id === "account-user-form") {
     event.preventDefault();
-    saveUserProfile({ ...userProfile, username: event.target.elements.username.value.trim(), password: event.target.elements.password.value || userProfile.password, aboutMe: event.target.elements.aboutMe.value.trim() });
+    saveUserProfile({ ...userProfile, username: event.target.elements.username.value.trim(), password: event.target.elements.password.value || userProfile.password, aboutMe: event.target.elements.aboutMe.value.trim(), role: activeRole, profileId: userProfile.profileId || createProfileId(currentUserId) });
+    addNotification("Profile details updated.");
     renderAccountPanel("user");
+  }
+  if (event.target.id === "privacy-form") {
+    event.preventDefault();
+    const privacy = getPrivacyForCurrentUser();
+    privacy.showEmail = event.target.elements.showEmail.checked;
+    privacy.showMobile = event.target.elements.showMobile.checked;
+    savePrivacySettings();
+    addNotification("Privacy settings updated.");
+    renderAccountPanel("privacy");
   }
   if (event.target.id === "account-class-form") {
     event.preventDefault();
@@ -926,7 +1291,6 @@ function handleOverlaySubmit(event) {
     window.location.href = `./${role}-interface.html`;
   }
 }
-
 const chatForm = document.getElementById("chatbot-form");
 if (chatForm) {
   chatForm.addEventListener("submit", (event) => {
@@ -943,11 +1307,23 @@ bottomButtons.forEach((btn) => {
 const feedPosts = document.getElementById("feed-posts");
 feedPosts?.addEventListener("click", handlePostAction);
 feedPosts?.addEventListener("click", handleShareChoice);
+feedPosts?.addEventListener("submit", (event) => {
+  if (event.target.id !== "post-composer-form") return;
+  event.preventDefault();
+  createPostFromForm(event.target);
+});
 
 document.getElementById("conversation-list")?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-conversation]");
   if (!button) return;
   setActiveConversation(button.dataset.conversation);
+});
+
+document.addEventListener("submit", (event) => {
+  if (event.target.id === "profile-search-form") {
+    event.preventDefault();
+    showProfileSearchResult(findProfileById(event.target.elements.profileId.value));
+  }
 });
 
 document.getElementById("message-form")?.addEventListener("submit", (event) => {
@@ -971,6 +1347,26 @@ renderMessages();
 renderChatbot();
 renderServices();
 setSection("feed");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

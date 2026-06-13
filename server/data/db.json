@@ -1,170 +1,207 @@
 {
-  "users": [
-    {
-      "role": "public",
-      "email": "public@healthsocial.demo",
-      "passwordHash": "4f695ba90351012ee16422dc07bb5d35263c1201c6eb6969b5fe7073cf1caeef",
-      "name": "Public User",
-      "phone": "Not provided",
-      "verified": true
-    },
-    {
-      "role": "doctor",
-      "email": "doctor@healthsocial.demo",
-      "passwordHash": "63bbe564aa5c0882355f6dcd6f2241b6f8d02d6f39725966ae564cd310f07850",
-      "name": "Doctor",
-      "phone": "Not provided",
-      "verified": true
-    },
-    {
-      "role": "vendor",
-      "email": "vendor@healthsocial.demo",
-      "passwordHash": "3e996eefc2571924dc0575cf6f9485f039c494b517efff872d0334a2bf9aa389",
-      "name": "Vendor",
-      "phone": "Not provided",
-      "verified": true
-    }
-  ],
-  "state": {
-    "healixFeedStats": {
-      "1": {
-        "likedBy": [],
-        "dislikedBy": [
-          "public@healthsocial.demo"
-        ],
-        "savedBy": [
-          "public@healthsocial.demo"
-        ],
-        "greenFlaggedBy": [],
-        "shares": []
-      },
-      "2": {
-        "likedBy": [
-          "public@healthsocial.demo"
-        ],
-        "dislikedBy": [],
-        "savedBy": [],
-        "greenFlaggedBy": [],
-        "shares": [
-          "public@healthsocial.demo:friend:Meera"
-        ]
-      },
-      "3": {
-        "likedBy": [],
-        "dislikedBy": [],
-        "savedBy": [
-          "public@healthsocial.demo"
-        ],
-        "greenFlaggedBy": [],
-        "shares": []
-      }
-    },
-    "healixServices": [
-      {
-        "id": "vendor-seed-1",
-        "type": "vendor",
-        "ownerId": "seed-vendor-1",
-        "providerName": "Fresh Basket",
-        "title": "Fruits & Vegetables",
-        "category": "Fruits & Vegetables",
-        "description": "Verified fruits & vegetables supplier serving Janakpuri, Delhi. Contact directly for availability and delivery decisions.",
-        "mrp": "On request",
-        "phone": "9001002003",
-        "address": "Janakpuri, Delhi",
-        "images": [],
-        "createdAt": "2026-05-30T20:47:24.599Z"
-      },
-      {
-        "id": "vendor-seed-2",
-        "type": "vendor",
-        "ownerId": "seed-vendor-2",
-        "providerName": "Fit Fuel Store",
-        "title": "Supplements",
-        "category": "Supplements",
-        "description": "Verified supplements supplier serving Dwarka, Delhi. Contact directly for availability and delivery decisions.",
-        "mrp": "On request",
-        "phone": "9001002004",
-        "address": "Dwarka, Delhi",
-        "images": [],
-        "createdAt": "2026-05-30T20:47:24.600Z"
-      },
-      {
-        "id": "vendor-seed-3",
-        "type": "vendor",
-        "ownerId": "seed-vendor-3",
-        "providerName": "GreenMart Delhi",
-        "title": "Organic Foods",
-        "category": "Organic Foods",
-        "description": "Verified organic foods supplier serving Rohini, Delhi. Contact directly for availability and delivery decisions.",
-        "mrp": "On request",
-        "phone": "9001002099",
-        "address": "Rohini, Delhi",
-        "images": [],
-        "createdAt": "2026-05-30T20:47:24.600Z"
-      },
-      {
-        "id": "doctor-seed-1",
-        "type": "doctor",
-        "ownerId": "seed-doctor-1",
-        "providerName": "Dr. A. Mehra",
-        "title": "General Physician",
-        "category": "General Physician",
-        "description": "Verified general physician consultation in Dwarka, Delhi. Patients can call and coordinate appointments directly.",
-        "mrp": "Consultation fee on request",
-        "phone": "9876543210",
-        "address": "Dwarka, Delhi",
-        "images": [],
-        "createdAt": "2026-05-30T20:47:24.600Z"
-      },
-      {
-        "id": "doctor-seed-2",
-        "type": "doctor",
-        "ownerId": "seed-doctor-2",
-        "providerName": "Dr. N. Bhatia",
-        "title": "Nutrition",
-        "category": "Nutrition",
-        "description": "Verified nutrition consultation in Rohini, Delhi. Patients can call and coordinate appointments directly.",
-        "mrp": "Consultation fee on request",
-        "phone": "9988776655",
-        "address": "Rohini, Delhi",
-        "images": [],
-        "createdAt": "2026-05-30T20:47:24.600Z"
-      },
-      {
-        "id": "doctor-seed-3",
-        "type": "doctor",
-        "ownerId": "seed-doctor-3",
-        "providerName": "Dr. S. Gupta",
-        "title": "Child Specialist",
-        "category": "Child Specialist",
-        "description": "Verified child specialist consultation in Saket, Delhi. Patients can call and coordinate appointments directly.",
-        "mrp": "Consultation fee on request",
-        "phone": "9911002200",
-        "address": "Saket, Delhi",
-        "images": [],
-        "createdAt": "2026-05-30T20:47:24.600Z"
-      }
-    ],
-    "healixServiceHistory": [],
-    "healixServiceRatings": {
-      "vendor-seed-3": {
-        "public@healthsocial.demo": 3
-      },
-      "doctor-seed-3": {
-        "public@healthsocial.demo": 1
-      },
-      "doctor-seed-1": {
-        "public@healthsocial.demo": 1
-      }
-    },
-    "healixUserProfiles": {
-      "public@healthsocial.demo": {
-        "username": "Public",
-        "password": "",
-        "mobile": "Not provided",
-        "email": "public@healthsocial.demo",
-        "aboutMe": "Tell people about your health journey."
-      }
-    }
-  }
+    "users":  [
+                  {
+                      "role":  "public",
+                      "email":  "public@healthsocial.demo",
+                      "passwordHash":  "4f695ba90351012ee16422dc07bb5d35263c1201c6eb6969b5fe7073cf1caeef",
+                      "name":  "Public User",
+                      "phone":  "Not provided",
+                      "verified":  true
+                  },
+                  {
+                      "role":  "doctor",
+                      "email":  "doctor@healthsocial.demo",
+                      "passwordHash":  "63bbe564aa5c0882355f6dcd6f2241b6f8d02d6f39725966ae564cd310f07850",
+                      "name":  "Doctor",
+                      "phone":  "Not provided",
+                      "verified":  true
+                  },
+                  {
+                      "role":  "vendor",
+                      "email":  "vendor@healthsocial.demo",
+                      "passwordHash":  "3e996eefc2571924dc0575cf6f9485f039c494b517efff872d0334a2bf9aa389",
+                      "name":  "Vendor",
+                      "phone":  "Not provided",
+                      "verified":  true
+                  }
+              ],
+    "state":  {
+                  "healixFeedStats":  {
+                                          "1":  {
+                                                    "likedBy":  [
+
+                                                                ],
+                                                    "dislikedBy":  [
+                                                                       "public@healthsocial.demo"
+                                                                   ],
+                                                    "savedBy":  [
+                                                                    "public@healthsocial.demo"
+                                                                ],
+                                                    "greenFlaggedBy":  [
+
+                                                                       ],
+                                                    "shares":  [
+
+                                                               ]
+                                                },
+                                          "2":  {
+                                                    "likedBy":  [
+                                                                    "public@healthsocial.demo"
+                                                                ],
+                                                    "dislikedBy":  [
+
+                                                                   ],
+                                                    "savedBy":  [
+
+                                                                ],
+                                                    "greenFlaggedBy":  [
+
+                                                                       ],
+                                                    "shares":  [
+                                                                   "public@healthsocial.demo:friend:Meera"
+                                                               ]
+                                                },
+                                          "3":  {
+                                                    "likedBy":  [
+
+                                                                ],
+                                                    "dislikedBy":  [
+
+                                                                   ],
+                                                    "savedBy":  [
+                                                                    "public@healthsocial.demo"
+                                                                ],
+                                                    "greenFlaggedBy":  [
+
+                                                                       ],
+                                                    "shares":  [
+
+                                                               ]
+                                                }
+                                      },
+                  "healixServices":  [
+                                         {
+                                             "id":  "vendor-seed-1",
+                                             "type":  "vendor",
+                                             "ownerId":  "seed-vendor-1",
+                                             "providerName":  "Fresh Basket",
+                                             "title":  "Fruits \u0026 Vegetables",
+                                             "category":  "Fruits \u0026 Vegetables",
+                                             "description":  "Verified fruits \u0026 vegetables supplier serving Janakpuri, Delhi. Contact directly for availability and delivery decisions.",
+                                             "mrp":  "On request",
+                                             "phone":  "9001002003",
+                                             "address":  "Janakpuri, Delhi",
+                                             "images":  [
+
+                                                        ],
+                                             "createdAt":  "2026-05-30T20:47:24.599Z"
+                                         },
+                                         {
+                                             "id":  "vendor-seed-2",
+                                             "type":  "vendor",
+                                             "ownerId":  "seed-vendor-2",
+                                             "providerName":  "Fit Fuel Store",
+                                             "title":  "Supplements",
+                                             "category":  "Supplements",
+                                             "description":  "Verified supplements supplier serving Dwarka, Delhi. Contact directly for availability and delivery decisions.",
+                                             "mrp":  "On request",
+                                             "phone":  "9001002004",
+                                             "address":  "Dwarka, Delhi",
+                                             "images":  [
+
+                                                        ],
+                                             "createdAt":  "2026-05-30T20:47:24.600Z"
+                                         },
+                                         {
+                                             "id":  "vendor-seed-3",
+                                             "type":  "vendor",
+                                             "ownerId":  "seed-vendor-3",
+                                             "providerName":  "GreenMart Delhi",
+                                             "title":  "Organic Foods",
+                                             "category":  "Organic Foods",
+                                             "description":  "Verified organic foods supplier serving Rohini, Delhi. Contact directly for availability and delivery decisions.",
+                                             "mrp":  "On request",
+                                             "phone":  "9001002099",
+                                             "address":  "Rohini, Delhi",
+                                             "images":  [
+
+                                                        ],
+                                             "createdAt":  "2026-05-30T20:47:24.600Z"
+                                         },
+                                         {
+                                             "id":  "doctor-seed-1",
+                                             "type":  "doctor",
+                                             "ownerId":  "seed-doctor-1",
+                                             "providerName":  "Dr. A. Mehra",
+                                             "title":  "General Physician",
+                                             "category":  "General Physician",
+                                             "description":  "Verified general physician consultation in Dwarka, Delhi. Patients can call and coordinate appointments directly.",
+                                             "mrp":  "Consultation fee on request",
+                                             "phone":  "9876543210",
+                                             "address":  "Dwarka, Delhi",
+                                             "images":  [
+
+                                                        ],
+                                             "createdAt":  "2026-05-30T20:47:24.600Z"
+                                         },
+                                         {
+                                             "id":  "doctor-seed-2",
+                                             "type":  "doctor",
+                                             "ownerId":  "seed-doctor-2",
+                                             "providerName":  "Dr. N. Bhatia",
+                                             "title":  "Nutrition",
+                                             "category":  "Nutrition",
+                                             "description":  "Verified nutrition consultation in Rohini, Delhi. Patients can call and coordinate appointments directly.",
+                                             "mrp":  "Consultation fee on request",
+                                             "phone":  "9988776655",
+                                             "address":  "Rohini, Delhi",
+                                             "images":  [
+
+                                                        ],
+                                             "createdAt":  "2026-05-30T20:47:24.600Z"
+                                         },
+                                         {
+                                             "id":  "doctor-seed-3",
+                                             "type":  "doctor",
+                                             "ownerId":  "seed-doctor-3",
+                                             "providerName":  "Dr. S. Gupta",
+                                             "title":  "Child Specialist",
+                                             "category":  "Child Specialist",
+                                             "description":  "Verified child specialist consultation in Saket, Delhi. Patients can call and coordinate appointments directly.",
+                                             "mrp":  "Consultation fee on request",
+                                             "phone":  "9911002200",
+                                             "address":  "Saket, Delhi",
+                                             "images":  [
+
+                                                        ],
+                                             "createdAt":  "2026-05-30T20:47:24.600Z"
+                                         }
+                                     ],
+                  "healixServiceHistory":  [
+
+                                           ],
+                  "healixServiceRatings":  {
+                                               "vendor-seed-3":  {
+                                                                     "public@healthsocial.demo":  3
+                                                                 },
+                                               "doctor-seed-3":  {
+                                                                     "public@healthsocial.demo":  1
+                                                                 },
+                                               "doctor-seed-1":  {
+                                                                     "public@healthsocial.demo":  1
+                                                                 }
+                                           },
+                  "healixUserProfiles":  {
+                                             "public@healthsocial.demo":  {
+                                                                              "username":  "Public",
+                                                                              "password":  "",
+                                                                              "mobile":  "Not provided",
+                                                                              "email":  "public@healthsocial.demo",
+                                                                              "aboutMe":  "Tell people about your health journey."
+                                                                          }
+                                         },
+                  "healixFriendGraph":  {
+
+                                        }
+              }
 }
